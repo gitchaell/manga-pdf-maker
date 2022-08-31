@@ -42,25 +42,29 @@ try {
     let i = 0;
     let j = pageNames.length - 1;
     let loadValue = 0;
+    let even = true;
 
     do {
 
       const firstPageName = pageNames.at(i);
       const lastPageName = pageNames.at(j);
 
-      pdf
-        .addPage()
-        .image(`${ASSETS_DIR}/${volumeName}/${lastPageName}`, 0, 0,
-          {
-            fit: [pdf.page.width / 2, pdf.page.height]
-          })
-        .image(`${ASSETS_DIR}/${volumeName}/${firstPageName}`, pdf.page.width / 2, 0,
-          {
-            fit: [pdf.page.width / 2, pdf.page.height]
-          });
+      pdf.addPage();
+      const imageWidth = pdf.page.width / 2;
+      const fit = [imageWidth, pdf.page.height];
+
+      if (even) {
+        pdf.image(`${ASSETS_DIR}/${volumeName}/${lastPageName}`, 0, 0, { fit });
+        pdf.image(`${ASSETS_DIR}/${volumeName}/${firstPageName}`, imageWidth, 0, { fit });
+      } else {
+        pdf.image(`${ASSETS_DIR}/${volumeName}/${firstPageName}`, 0, 0, { fit });
+        pdf.image(`${ASSETS_DIR}/${volumeName}/${lastPageName}`, imageWidth, 0, { fit });
+      }
 
       i++;
       j--;
+
+      even = !even;
 
       loadValue += 2;
 
