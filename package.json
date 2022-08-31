@@ -1,0 +1,26 @@
+{
+  "name": "printable-manga-pdf-maker",
+  "version": "1.0.0",
+  "description": "Generate a ordered-printable manga pdf from multiple images",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon src/app.js"
+  },
+  "keywords": [
+    "manga",
+    "pdf",
+    "images",
+    "generator"
+  ],
+  "author": "Michaell Alavedra",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  },
+  "dependencies": {
+    "cli-progress": "^3.11.2",
+    "pdfkit": "^0.13.0",
+    "pino": "^8.4.2",
+    "pino-pretty": "^9.1.0"
+  }
+}
