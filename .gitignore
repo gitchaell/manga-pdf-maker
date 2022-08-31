@@ -2,3 +2,5 @@ node_modules/
 
 assets/**/*.png
 assets/**/*.jpg
+
+generated/**/*.pdf
