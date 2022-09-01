@@ -36,7 +36,7 @@ Although, it is a good solution to the above mentioned problem, I propose a simp
 
     - At this point, the folder structure should look as shown below.
 
-    ![folder-structure](.github\images\folder-structure.png)
+    ![folder-structure](.github/images/folder-structure.png)
 
 5. Open the `src/app/js` file and edit line of code 7 with the name of your manga that you assigned to the directory created in step 3, and save the changes.
 
@@ -48,8 +48,8 @@ Although, it is a good solution to the above mentioned problem, I propose a simp
 
 6. Finally, open the terminal and run the command `npm run start:app` and wait for the PDF files to be ready. You can see it in the `generated/<manga>/volumes/*.pdf` folder.
 
-    ![cli-execution](.github\images\cli-execution.png)
+    ![cli-execution](.github/images/cli-execution.png)
 
 7. If you are going to print the PDF, make sure to set up double-sided printing. In the case of printing from Google Chrome, you can print the odd pages first, and then the even pages on the reverse side of the odd pages.
 
-    ![folder-structure](.github\images\pdf-generated.png)
+    ![folder-structure](.github/images/pdf-generated.png)
