@@ -19,9 +19,7 @@
     "nodemon": "^2.0.19"
   },
   "dependencies": {
-    "cli-progress": "^3.11.2",
     "pdfkit": "^0.13.0",
-    "pino": "^8.4.2",
-    "pino-pretty": "^9.1.0"
+    "progress": "^2.0.3"
   }
 }

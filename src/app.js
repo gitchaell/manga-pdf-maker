@@ -1,18 +1,11 @@
-const cliProgress = require('cli-progress');
-const logger = require('pino')(require('pino-pretty')());
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
+const ProgressBar = require('progress');
 
 
-const MANGA_NAME = 'dragon-ball-super';
+const MANGA_NAME = 'dragon-ball-super'; // modify this
 const ASSETS_DIR = `./assets/${MANGA_NAME}/volumes`;
 const GENERATED_DIR = `./generated/${MANGA_NAME}/volumes`;
-
-const loadingLogger = new cliProgress.MultiBar({
-  format: 'Volume {volumeName}.pdf [{bar}] {percentage}% | ETA: {eta}s | {value}/{total}',
-  clearOnComplete: false,
-  hideCursor: true
-}, cliProgress.Presets.legacy);
 
 try {
 
@@ -32,7 +25,7 @@ try {
 
     if (!pageNames.length) continue;
 
-    const loader = loadingLogger.create(pageNames.length, 0, { volumeName });
+    const loader = new ProgressBar('  Volume :volumeName [:bar] :rate/bps :percent', { total: pageNames.length });
 
     let i = 0;
     let j = pageNames.length - 1;
@@ -60,16 +53,16 @@ try {
 
       even = !even;
 
-      loader.increment(2);
+      loader.tick(2, { volumeName });
 
     } while (i < j);
 
     pdf.end();
 
+    loader.terminate();
+
   }
 
-  loadingLogger.stop();
-
 } catch (err) {
-  logger.error(err.message);
+  console.error(err);
 }
