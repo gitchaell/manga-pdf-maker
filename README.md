@@ -38,12 +38,10 @@ Although, it is a good solution to the above mentioned problem, I propose a simp
 
     ![folder-structure](.github/images/folder-structure.png)
 
-5. Open the `src/app/js` file and edit line of code 7 with the name of your manga that you assigned to the directory created in step 3, and save the changes.
+5. Open the `src/app/js` file and edit line of code 6 with the name of yours mangas that you assigned to the directory created in step 3, and save the changes.
 
     ```javascript
-    const MANGA_NAME = '<manga>'; // modify this
-    const ASSETS_DIR = `./assets/${MANGA_NAME}/volumes`;
-    const GENERATED_DIR = `./generated/${MANGA_NAME}/volumes`;
+    const MANGAS = ['dragon-ball-artbook', 'dragon-ball-super', 'jaco-patrullero-galactico'];
     ```
 
 6. Finally, open the terminal and run the command `npm run start:app` and wait for the PDF files to be ready. You can see it in the `generated/<manga>/volumes/*.pdf` folder.

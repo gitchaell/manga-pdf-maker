@@ -3,63 +3,70 @@ const fs = require('fs');
 const ProgressBar = require('progress');
 
 
-const MANGA_NAME = 'dragon-ball-super'; // modify this
-const ASSETS_DIR = `./assets/${MANGA_NAME}/volumes`;
-const GENERATED_DIR = `./generated/${MANGA_NAME}/volumes`;
+const MANGAS = ['dragon-ball-artbook', 'dragon-ball-super', 'jaco-patrullero-galactico'];
 
 try {
 
-  const volumeNames = fs.readdirSync(ASSETS_DIR);
+  for (const MANGA of MANGAS) {
 
-  if (!volumeNames.length) {
-    throw new Error(`Volumes not found. Process finished!`);
-  }
+    console.log(`\nProcessing Manga ${MANGA}\n`);
 
-  for (const volumeName of volumeNames) {
+    const ASSETS_DIR = `./assets/${MANGA}/volumes`;
+    const GENERATED_DIR = `./generated/${MANGA}/volumes`;
 
-    const pdf = new PDFDocument({ autoFirstPage: false, layout: 'landscape', size: 'A4', margin: 0 });
+    const volumeNames = fs.readdirSync(ASSETS_DIR);
 
-    pdf.pipe(fs.createWriteStream(`${GENERATED_DIR}/${volumeName}.pdf`));
+    if (!volumeNames.length) {
+      throw new Error(`Volumes not found. Process finished!`);
+    }
 
-    const pageNames = fs.readdirSync(`${ASSETS_DIR}/${volumeName}`);
+    for (const volumeName of volumeNames) {
 
-    if (!pageNames.length) continue;
+      const pdf = new PDFDocument({ autoFirstPage: false, layout: 'landscape', size: 'A4', margin: 0 });
 
-    const loader = new ProgressBar('  Volume :volumeName [:bar] :rate/bps :percent', { total: pageNames.length });
+      pdf.pipe(fs.createWriteStream(`${GENERATED_DIR}/${volumeName}.pdf`));
 
-    let i = 0;
-    let j = pageNames.length - 1;
-    let even = true;
+      const pageNames = fs.readdirSync(`${ASSETS_DIR}/${volumeName}`);
 
-    do {
+      if (!pageNames.length) continue;
 
-      const firstImage = pageNames.at(i);
-      const lastImage = pageNames.at(j);
+      const loader = new ProgressBar('  Volume :volumeName [:bar] :rate/bps :percent', { total: pageNames.length });
 
-      pdf.addPage();
-      const imageWidth = pdf.page.width / 2;
-      const fit = [imageWidth, pdf.page.height];
+      let i = 0;
+      let j = pageNames.length - 1;
+      let even = true;
 
-      if (even) {
-        pdf.image(`${ASSETS_DIR}/${volumeName}/${lastImage}`, 0, 0, { fit });
-        pdf.image(`${ASSETS_DIR}/${volumeName}/${firstImage}`, imageWidth, 0, { fit });
-      } else {
-        pdf.image(`${ASSETS_DIR}/${volumeName}/${firstImage}`, 0, 0, { fit });
-        pdf.image(`${ASSETS_DIR}/${volumeName}/${lastImage}`, imageWidth, 0, { fit });
-      }
+      do {
 
-      i++;
-      j--;
+        const firstImage = pageNames.at(i);
+        const lastImage = pageNames.at(j);
 
-      even = !even;
+        pdf.addPage();
+        const imageWidth = pdf.page.width / 2;
+        const fit = [imageWidth, pdf.page.height];
 
-      loader.tick(2, { volumeName });
+        if (even) {
+          pdf.image(`${ASSETS_DIR}/${volumeName}/${lastImage}`, 0, 0, { fit });
+          pdf.image(`${ASSETS_DIR}/${volumeName}/${firstImage}`, imageWidth, 0, { fit });
+        } else {
+          pdf.image(`${ASSETS_DIR}/${volumeName}/${firstImage}`, 0, 0, { fit });
+          pdf.image(`${ASSETS_DIR}/${volumeName}/${lastImage}`, imageWidth, 0, { fit });
+        }
 
-    } while (i < j);
+        i++;
+        j--;
 
-    pdf.end();
+        even = !even;
 
-    loader.terminate();
+        loader.tick(2, { volumeName });
+
+      } while (i < j);
+
+      pdf.end();
+
+      loader.terminate();
+
+    }
 
   }
 
