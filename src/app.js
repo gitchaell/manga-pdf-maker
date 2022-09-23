@@ -1,94 +1,133 @@
-const PDFDocument = require('pdfkit');
 const fs = require('fs');
-const ProgressBar = require('progress');
+const sizeOf = require('image-size');
+const PDFDocument = require('pdfkit');
+const inquirer = require('inquirer');
 
 
-// const MANGAS = ['dragon-ball-artbook', 'dragon-ball-super', 'jaco-patrullero-galactico'];
-const MANGAS = ['dragon-ball-super'];
+(() => selectMangas())();
 
-try {
+function selectMangas() {
 
-  for (const MANGA of MANGAS) {
+  const mangas = fs.readdirSync('./assets');
 
-    console.log(`\nProcessing Manga ${MANGA}\n`);
+  if (!mangas.length)
+    throw new Error(`Mangas not found. Process finished!`);
 
-    const ASSETS_DIR = `./assets/${MANGA}/volumes`;
-    const GENERATED_DIR = `./generated/${MANGA}/volumes`;
+  inquirer.prompt([{
+    type: 'checkbox',
+    message: 'Select mangas',
+    name: 'mangas',
+    choices: mangas,
+    validate: answer => answer.length < 1 ? 'You must choose at least one manga.' : true,
+  }])
+    .then(({ mangas }) => generatePDF(mangas));
+}
+
+function generatePDF(mangas) {
+
+  const ui = new inquirer.ui.BottomBar();
+
+  for (const manga of mangas) {
+
+    const ASSETS_DIR = `./assets/${manga}/volumes`;
+    const GENERATED_DIR = `./generated/${manga}/volumes`;
+
+    fs.mkdirSync(GENERATED_DIR, { recursive: true });
 
     const volumes = fs.readdirSync(ASSETS_DIR);
 
-    if (!volumes.length) {
-      throw new Error(`Volumes not found. Process finished!`);
-    }
+    if (!volumes.length)
+      throw new Error(`Volumes not found in Manga ${manga}. Process finished!`);
 
-    for (const volume of volumes) {
+    inquirer.prompt([{
+      type: 'checkbox',
+      message: `Select volumes for Manga ${manga}`,
+      name: 'volumes',
+      choices: volumes,
+      validate: answer => answer.length < 1 ? 'You must choose at least one volume.' : true,
+    }])
+      .then(({ volumes }) => {
 
-      const pdf = new PDFDocument({ autoFirstPage: false, layout: 'landscape', size: 'A4', margin: 0 });
+        for (const volume of volumes) {
 
-      pdf.pipe(fs.createWriteStream(`${GENERATED_DIR}/${volume}.pdf`));
+          const pdf = new PDFDocument({ autoFirstPage: false, layout: 'landscape', size: 'A4', margin: 0 });
 
-      const pages = fs.readdirSync(`${ASSETS_DIR}/${volume}`);
+          pdf.pipe(fs.createWriteStream(`${GENERATED_DIR}/${volume}.pdf`));
 
-      if (!pages.length) {
-        throw new Error(`Pages not found in Volume: ${volume}`);
-      }
+          const pages = fs.readdirSync(`${ASSETS_DIR}/${volume}`);
 
-      if (pages.length % 4) {
-        throw new Error(`Total number of pages in Volume ${volume} (${pages.length}) must be multiples of 4`);
-      }
+          if (!pages.length)
+            throw new Error(`Pages not found in Manga ${manga} Vol. ${volume}`);
 
-      const loader = new ProgressBar('  Volume :volume [:bar] :rate/bps :percent', { total: pages.length });
+          const step = 8;
 
-      let i = 1;
-      let j = 16;
-      let iBase = i;
-      let jBase = j;
-      let even = true;
+          if (pages.length % step)
+            throw new Error(`Pages (${pages.length}) in Manga ${manga} Vol. ${volume} must be multiples of ${step}`);
 
-      do {
+          let i = 1;
+          let j = step;
+          let iBase = i;
+          let jBase = j;
+          let even = true;
 
-        const firstImage = pages.at(i - 1);
-        const lastImage = pages.at(j - 1);
+          do {
 
-        pdf.addPage();
-        const imageWidth = pdf.page.width / 2;
-        const fit = [imageWidth, pdf.page.height];
+            const firstImage = pages.at(i - 1);
+            const lastImage = pages.at(j - 1);
 
-        if (even) {
-          pdf.image(`${ASSETS_DIR}/${volume}/${lastImage}`, 0, 0, { fit });
-          pdf.image(`${ASSETS_DIR}/${volume}/${firstImage}`, imageWidth, 0, { fit });
-        } else {
-          pdf.image(`${ASSETS_DIR}/${volume}/${firstImage}`, 0, 0, { fit });
-          pdf.image(`${ASSETS_DIR}/${volume}/${lastImage}`, imageWidth, 0, { fit });
+            pdf.addPage();
+
+            if (even) {
+
+              const x = getXFor({ filePath: `${ASSETS_DIR}/${volume}/${firstImage}`, pageWidth: pdf.page.width, pageHeight: pdf.page.height });
+
+              pdf.image(`${ASSETS_DIR}/${volume}/${lastImage}`, 0, 0, { height: pdf.page.height });
+              pdf.image(`${ASSETS_DIR}/${volume}/${firstImage}`, x, 0, { height: pdf.page.height });
+            } else {
+
+              const x = getXFor({ filePath: `${ASSETS_DIR}/${volume}/${lastImage}`, pageWidth: pdf.page.width, pageHeight: pdf.page.height });
+
+              pdf.image(`${ASSETS_DIR}/${volume}/${firstImage}`, 0, 0, { height: pdf.page.height });
+              pdf.image(`${ASSETS_DIR}/${volume}/${lastImage}`, x, 0, { height: pdf.page.height });
+            }
+
+            ui.updateBottomBar(`Generating => Manga: ${manga}, Volume: ${volume}, Pages: ${i}/${pages.length}`);
+
+            i++;
+            j--;
+
+            even = !even;
+
+            if (i - j === 1) {
+              iBase += step;
+              jBase += step;
+
+              if (iBase <= pages.length && jBase <= pages.length) {
+                i = iBase;
+                j = jBase;
+              } else break;
+            }
+
+          } while (true);
+
+          pdf.end();
+
         }
 
-        i++;
-        j--;
-
-        even = !even;
-
-        loader.tick(2, { volume });
-
-        if (i - j === 1) {
-          iBase += 16;
-          jBase += 16;
-
-          if (iBase <= pages.length && jBase <= pages.length) {
-            i = iBase;
-            j = jBase;
-          } else break;
-        }
-
-      } while (true);
-
-      pdf.end();
-
-      loader.terminate();
-
-    }
+      });
 
   }
 
-} catch (err) {
-  console.error(err);
+}
+
+function getXFor({ filePath, pageWidth, pageHeight }) {
+
+  const dimension = sizeOf(filePath);
+  const widthBase = dimension.width;
+  const heightBase = dimension.height;
+  const widthTarget = pageHeight * widthBase / heightBase;
+
+  const x = pageWidth - widthTarget;
+
+  return x;
 }
