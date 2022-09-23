@@ -1,5 +1,5 @@
 {
-  "name": "printable-manga-pdf-maker",
+  "name": "manga-pdf-maker",
   "version": "1.0.0",
   "description": "Generate a ordered-printable manga pdf from multiple images",
   "main": "app.js",
