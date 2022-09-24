@@ -7,7 +7,7 @@ const Manga = require('../models/manga.model');
 
 class PDFMaker {
   constructor () {
-    this.path = `./assets`;
+    this.path = `./assets/mangas`;
     this.log = new inquirer.ui.BottomBar();
     return this;
   }
@@ -114,6 +114,8 @@ class PDFMaker {
       pdf.end();
 
     }
+
+    this.log.updateBottomBar(`Generated PDF Files in ${manga.outputPath}`);
   }
 }
 
